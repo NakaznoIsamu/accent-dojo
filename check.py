@@ -1,10 +1,13 @@
-import pyopenjtalk,sys
-sys.path.insert(0,"/tmp/claude-0/-home-claude/55e828ac-9f06-5499-9bfb-2da9af8dc45a/scratchpad")
-from t2 import pitch
-for line in open("sentences.txt"):
-    lv,*ss=line.strip().split("|")
+"""sentences.txt の各文の読みとアクセント型を表示して目視チェックするための補助スクリプト。"""
+import pyopenjtalk
+from build import pitch_moras
+
+for line in open("sentences.txt", encoding="utf-8"):
+    if not line.strip() or line.startswith("#"):
+        continue
+    lv, *ss = line.strip().split("|")
     for s in ss:
-        nj=pyopenjtalk.run_frontend(s)
-        print(lv,s)
-        print("   ", " ".join(f"{n['string']}[{n['read']}:{n['acc']}]" for n in nj if n['string'] not in "。、"))
-        print("   ", pitch(s))
+        nj = pyopenjtalk.run_frontend(s)
+        print(lv, s)
+        print("   ", " ".join(f"{n['string']}[{n['read']}:{n['acc']}]" for n in nj if n["string"] not in "。、"))
+        print("   ", pitch_moras(s))

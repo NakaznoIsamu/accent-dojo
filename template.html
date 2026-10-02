@@ -65,6 +65,34 @@ button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:
 .seg button{border:0;background:transparent;font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;color:var(--sub)}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .note{font-size:12px;color:var(--sub);line-height:1.6;margin-top:18px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--chip);border-radius:14px;padding:4px;margin-bottom:14px}
+.tabs button{border:0;background:transparent;font:inherit;font-size:15px;font-weight:700;padding:10px;border-radius:11px;color:var(--sub)}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.view[hidden]{display:none}
+.search{display:flex;gap:8px;margin-bottom:6px}
+.search input{flex:1;min-width:0;font:inherit;font-size:18px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);-webkit-appearance:none}
+.search input:focus{outline:2px solid var(--accent);outline-offset:0}
+.hint{font-size:12px;color:var(--sub);margin:4px 2px 14px;line-height:1.6}
+.results{display:flex;flex-direction:column;gap:10px}
+.word{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;
+  grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.word .surf{font-family:"Noto Serif JP",serif;font-size:22px;font-weight:700}
+.word .surf small{font-family:"Zen Maru Gothic",sans-serif;font-size:11px;font-weight:500;color:var(--sub);margin-left:6px;
+  background:var(--chip);border-radius:999px;padding:2px 8px;vertical-align:middle}
+.word .type{font-size:13px;color:var(--accent);font-weight:700;text-align:right}
+.word .speak{border:0;border-radius:12px;background:var(--chip);color:var(--ink);font-size:16px;width:44px;height:44px}
+.pitch{display:flex;align-items:stretch;font-size:19px;padding:6px 0 2px;letter-spacing:.02em}
+.pitch .m{padding:2px 3px 3px;border:0 solid var(--accent)}
+.pitch .m.h{border-top-width:2px}
+.pitch .m.l{border-bottom-width:2px}
+.pitch .m.step{border-left-width:2px}
+.pitch .m.p{color:var(--sub);border-color:var(--sub);border-style:dashed}
+.legend{font-size:12px;color:var(--sub);line-height:1.7;margin-top:2px}
+.empty{background:var(--chip);border-radius:14px;padding:14px;font-size:14px;line-height:1.7}
+.ojad{margin-top:14px;width:100%;border:0;border-radius:14px;padding:13px;font:inherit;font-size:15px;font-weight:700;
+  background:var(--chip);color:var(--ink)}
+.credit{font-size:11px;color:var(--sub);margin-top:18px;line-height:1.6}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);max-width:608px;margin:0 auto;
   background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;
   font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.2)}
@@ -89,6 +117,12 @@ button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:
   下の共有ボタン（□に↑）→「ホーム画面に追加」をタップ。次からホーム画面のアイコンで起動でき、電波がなくても使えます。
 </div>
 
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-view="viewPractice">練習</button>
+  <button role="tab" aria-selected="false" data-view="viewDict">辞書</button>
+</nav>
+
+<div class="view" id="viewPractice">
 <nav class="levels" id="levels"></nav>
 
 <main class="card" id="card">
@@ -109,6 +143,19 @@ button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:
 </section>
 
 <p class="note">お手本の声が機械っぽいときは、iPhoneの「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 日本語」で「拡張」や「プレミアム」の声をダウンロードすると自然になります。</p>
+</div>
+
+<div class="view" id="viewDict" hidden>
+  <div class="search">
+    <input id="q" type="search" placeholder="例：はし、橋、渡る" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  </div>
+  <p class="hint">漢字でもひらがなでも引けます。ひらがなで引くと、同じ読みの言葉（橋・箸・端など）が並びます。</p>
+  <div class="results" id="results"></div>
+  <p class="legend" id="legend" hidden>線が上＝高く、下＝低く読みます。点線は後ろに付く「が」の高さ。「橋が」と「端が」のように、単語だけでは同じでも「が」で差が出ます。</p>
+  <button class="ojad" id="ojad">文で調べる（OJAD・東京大学）</button>
+  <p class="hint">文を丸ごと調べたいときは、入力した文をコピーしてOJADを開きます。貼り付けて「実行」を押してください。</p>
+  <p class="credit">アクセントは辞書データに基づく目安です。辞書データ：NAIST Japanese Dictionary（© Nara Institute of Science and Technology）</p>
+</div>
 
 <div class="toast" id="updateToast" hidden>
   <span>新しいバージョンがあります</span>
@@ -212,6 +259,108 @@ seg("rubySeg", v=>document.body.classList.toggle("noruby", v==="off"));
 seg("rateSeg", v=>rate=parseFloat(v));
 
 pick();
+
+/* ---- タブ ---- */
+document.querySelectorAll(".tabs button").forEach(t=>t.onclick=()=>{
+  speechSynthesis.cancel(); setSpeaking(false);
+  document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected", x===t?"true":"false"));
+  document.querySelectorAll(".view").forEach(v=>v.hidden = v.id!==t.dataset.view);
+  if(t.dataset.view==="viewDict") loadDict();
+});
+
+/* ---- 辞書 ---- */
+let DICT = null, dictLoading = null;
+const resultsEl = document.getElementById("results");
+function loadDict(){
+  if(DICT || dictLoading) return dictLoading;
+  resultsEl.replaceChildren(el("div","empty","辞書を読み込んでいます…（初回だけ少し時間がかかります）"));
+  dictLoading = fetch("dict.json").then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(d=>{
+    DICT = d; resultsEl.replaceChildren(); runSearch();
+  }).catch(()=>{
+    dictLoading = null;
+    resultsEl.replaceChildren(el("div","empty","辞書を読み込めませんでした。電波のある所でもう一度「辞書」を開いてください。"));
+  });
+  return dictLoading;
+}
+const toHira = s => s.replace(/[ァ-ヶ]/g, c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const SMALL = /[ぁぃぅぇぉゃゅょゎゕゖ]/;
+function morae(h){ const out=[]; for(const c of h){ if(SMALL.test(c) && out.length) out[out.length-1]+=c; else out.push(c); } return out; }
+function typeName(n,m){ return n===0?"平板型":n===1?"頭高型":n===m?"尾高型":"中高型"; }
+/* 各モーラ（＋助詞）が高いか低いか */
+function pattern(n,m){
+  const a=[]; for(let i=1;i<=m+1;i++){
+    a.push(n===0 ? i>1 : n===1 ? i===1 : (i>1 && i<=n));
+  } return a;
+}
+function search(q){
+  const raw = q.trim(); if(!raw) return [];
+  const h = toHira(raw);
+  const exact=[], read=[], pre=[];
+  for(const d of DICT){
+    if(d[0]===raw || d[0]===h) exact.push(d);
+    else if(d[1]===h) read.push(d);
+    else if(pre.length<300 && (d[0].startsWith(raw) || d[1].startsWith(h))) pre.push(d);
+  }
+  const hasKanji = d => /[一-鿿々]/.test(d[0]);
+  const byKind = (a,b)=>(a[3]===1)-(b[3]===1) || hasKanji(b)-hasKanji(a) || a[1].length-b[1].length;
+  // かなで引いたときは「表記一致」と「読み一致」を同列に扱う（はし→橋・箸・端）
+  const kanaQuery = /^[ぁ-ゖァ-ヺー]+$/.test(raw);
+  const head = kanaQuery ? [...exact, ...read].sort(byKind) : [...exact.sort(byKind), ...read.sort(byKind)];
+  // 同じ読み・同じアクセントの漢字の言葉があれば、かな表記の重複は省く
+  const covered = new Set(head.concat(pre).filter(hasKanji).map(d=>d[1]+"/"+d[2]));
+  const seen = new Set();
+  return [...head, ...pre.sort(byKind)].filter(d=>{
+    const k = d[0]+"/"+d[1]+"/"+d[2];
+    if(seen.has(k)) return false; seen.add(k);
+    return hasKanji(d) || !covered.has(d[1]+"/"+d[2]);
+  }).slice(0,60);
+}
+function speakWord(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=rate;
+  speechSynthesis.speak(u);
+}
+function renderWord(d){
+  const [surf, read, n, kind] = d;
+  const ms = morae(read), pat = pattern(n, ms.length), noun = kind!==2;
+  const box = el("div","word");
+  const s = el("div","surf",surf);
+  if(kind===1) s.append(el("small",null,"人名・地名など"));
+  const t = el("div","type",typeName(n,ms.length));
+  const sp = el("button","speak","▶"); sp.setAttribute("aria-label", surf+"を読み上げ"); sp.onclick=()=>speakWord(surf);
+  const p = el("div","pitch");
+  const units = noun ? [...ms, "が"] : ms;
+  units.forEach((m,i)=>{
+    const hi = pat[i];
+    let cls = "m " + (hi?"h":"l");
+    if(i>0 && pat[i-1]!==hi) cls += " step";
+    if(noun && i===units.length-1) cls += " p";
+    p.append(el("span",cls,m));
+  });
+  box.append(s, t, p, sp); // 表記 | 型 / 高低 | ▶
+  return box;
+}
+let searchTimer=null;
+function runSearch(){
+  if(!DICT) return;
+  const q = document.getElementById("q").value;
+  const res = search(q);
+  resultsEl.replaceChildren();
+  document.getElementById("legend").hidden = res.length===0;
+  if(!q.trim()) return;
+  if(!res.length){
+    resultsEl.append(el("div","empty","「"+q.trim()+"」は辞書に見つかりませんでした。新しい言葉や文は、下の「文で調べる」で確認できます。"));
+    return;
+  }
+  res.forEach(d=>resultsEl.append(renderWord(d)));
+}
+document.getElementById("q").addEventListener("input", ()=>{ clearTimeout(searchTimer); searchTimer=setTimeout(runSearch,180); });
+document.getElementById("q").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.target.blur(); runSearch(); } });
+document.getElementById("ojad").onclick = async ()=>{
+  const q = document.getElementById("q").value.trim();
+  if(q){ try{ await navigator.clipboard.writeText(q); }catch{} }
+  window.open("https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index","_blank","noopener");
+};
 
 /* ---- ホーム画面に追加の案内（iPhoneのSafariで、まだ追加していない時だけ） ---- */
 (function(){

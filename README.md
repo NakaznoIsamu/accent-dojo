@@ -12,3 +12,7 @@
 ## PWA（ホーム画面アプリ化）
 - `manifest.webmanifest` / `icons/` … ホーム画面アイコン（`make_icons.py` で生成）
 - `sw.template.js` → `sw.js` … オフライン対応。`VERSION` を上げてビルドすると、利用者側に「新しいバージョンがあります」と表示される
+
+## 辞書
+- `dict.json` … 約27万語のアクセント辞書（`build_dict.py` で naist-jdic.csv から生成）
+- 辞書データ: NAIST Japanese Dictionary（`LICENSE-naist-jdic.txt` 参照）
