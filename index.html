@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="アクセント道場">
+<meta name="theme-color" content="#f6f1e7">
+<title>アクセント道場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1e7; --card:#fffdf8; --ink:#2b2622; --sub:#7a6f63; --line:#e4dccd;
+  --accent:#c2412d; --accent-ink:#fff; --chip:#efe7d8; --hell:#7a1f12;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1916; --card:#262220; --ink:#f1ebe2; --sub:#a89c8e; --line:#3a342e;
+    --accent:#e0644e; --accent-ink:#1c1916; --chip:#332d28; --hell:#f08a74;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1916; --card:#262220; --ink:#f1ebe2; --sub:#a89c8e; --line:#3a342e;
+  --accent:#e0644e; --accent-ink:#1c1916; --chip:#332d28; --hell:#f08a74;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);
+  max-width:640px;margin:0 auto;-webkit-tap-highlight-color:transparent}
+header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+h1{font-family:"Noto Serif JP",serif;font-size:22px;margin:0;letter-spacing:.08em}
+h1 span{color:var(--accent)}
+.ver{font-size:11px;color:var(--sub)}
+.levels{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.levels::-webkit-scrollbar{display:none}
+.lv{flex:0 0 auto;border:0;border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;
+  background:var(--chip);color:var(--ink)}
+.lv[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 18px 22px;
+  box-shadow:0 1px 0 var(--line)}
+.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;min-height:26px}
+.badge{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--sub)}
+.badge.hell{background:var(--hell);color:var(--card)}
+.emotion{font-size:15px;font-weight:700;color:var(--accent)}
+.lines{display:flex;flex-direction:column;gap:18px}
+.sent{font-family:"Noto Serif JP",serif;font-size:24px;line-height:2.15;font-weight:500;word-break:break-all}
+.sent rt{font-family:"Zen Maru Gothic",sans-serif;font-size:.45em;color:var(--sub);letter-spacing:.02em}
+.noruby .sent rt{visibility:hidden}
+.reading{margin-top:2px;font-size:16px;color:var(--sub);line-height:1.7;border-top:1px dashed var(--line);padding-top:6px}
+.reading[hidden]{display:none}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:16px;font-weight:700}
+.play{background:var(--accent);color:var(--accent-ink);grid-column:1 / -1}
+.play.speaking{opacity:.75}
+.sec{background:var(--chip);color:var(--ink)}
+.settings{margin-top:18px;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--sub)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seg{display:flex;background:var(--chip);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.note{font-size:12px;color:var(--sub);line-height:1.6;margin-top:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>アクセント<span>道場</span></h1>
+  <span class="ver">v0.1.0</span>
+</header>
+
+<nav class="levels" id="levels"></nav>
+
+<main class="card" id="card">
+  <div class="meta" id="meta"></div>
+  <div class="lines" id="lines"></div>
+  <div class="actions">
+    <button class="big play" id="play">▶ お手本を聞く</button>
+    <button class="big sec" id="showReading">読みを見る</button>
+    <button class="big sec" id="next">次の問題 →</button>
+  </div>
+</main>
+
+<section class="settings">
+  <div class="row"><span>ルビ</span>
+    <div class="seg" id="rubySeg"><button data-v="on" aria-pressed="true">あり</button><button data-v="off">なし</button></div></div>
+  <div class="row"><span>お手本の速さ</span>
+    <div class="seg" id="rateSeg"><button data-v="0.75">ゆっくり</button><button data-v="1" aria-pressed="true">ふつう</button></div></div>
+</section>
+
+<p class="note">お手本の声が機械っぽいときは、iPhoneの「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 日本語」で「拡張」や「プレミアム」の声をダウンロードすると自然になります。</p>
+
+<script>
+const DATA = {"version": "0.1.0", "items": [{"level": "初級", "lines": [{"text": "橋を渡る。", "tokens": [["橋", "はし"], ["を", null], ["渡", "わた"], ["る", null], ["。", null]], "reading": "はしをわたる。", "pitch": [[0], [1, 0], [0], [1, 1]]}, {"text": "箸で食べる。", "tokens": [["箸", "はし"], ["で", null], ["食", "た"], ["べる", null], ["。", null]], "reading": "はしでたべる。", "pitch": [[1], [0, 0], [0], [1, 0]]}, {"text": "端に寄る。", "tokens": [["端", "はし"], ["に", null], ["寄", "よ"], ["る", null], ["。", null]], "reading": "はしによる。", "pitch": [[0], [1, 1], [0], [1]]}]}, {"level": "初級", "lines": [{"text": "雨が降る。", "tokens": [["雨", "あめ"], ["が", null], ["降", "ふ"], ["る", null], ["。", null]], "reading": "あめがふる。", "pitch": [[1, 0, 0], [1], [0]]}, {"text": "飴をなめる。", "tokens": [["飴", "あめ"], ["を", null], ["なめる", null], ["。", null]], "reading": "あめをなめる。", "pitch": [[0, 1, 1], [0], [1, 0]]}]}, {"level": "初級", "lines": [{"text": "鼻がかゆい。", "tokens": [["鼻", "はな"], ["が", null], ["かゆい", null], ["。", null]], "reading": "はながかゆい。", "pitch": [[0], [1, 1], [0], [1, 0]]}, {"text": "花が咲く。", "tokens": [["花", "はな"], ["が", null], ["咲", "さ"], ["く", null], ["。", null]], "reading": "はながさく。", "pitch": [[0], [1, 0], [0], [1]]}]}, {"level": "初級", "lines": [{"text": "酒を飲む。", "tokens": [["酒", "さけ"], ["を", null], ["飲", "の"], ["む", null], ["。", null]], "reading": "さけをのむ。", "pitch": [[0], [1, 1], [1], [0]]}, {"text": "鮭を焼く。", "tokens": [["鮭", "さけ"], ["を", null], ["焼", "や"], ["く", null], ["。", null]], "reading": "さけをやく。", "pitch": [[1], [0, 0], [0], [1]]}]}, {"level": "初級", "lines": [{"text": "朝が来る。", "tokens": [["朝", "あさ"], ["が", null], ["来", "く"], ["る", null], ["。", null]], "reading": "あさがくる。", "pitch": [[1, 0, 0], [1], [0]]}, {"text": "麻の服を着る。", "tokens": [["麻", "あさ"], ["の", null], ["服", "ふく"], ["を", null], ["着", "き"], ["る", null], ["。", null]], "reading": "あさのふくをきる。", "pitch": [[0, 1, 0], [0], [1, 0], [0], [1]]}]}, {"level": "中級", "lines": [{"text": "雨の日に飴を配る。", "tokens": [["雨", "あめ"], ["の", null], ["日", "ひ"], ["に", null], ["飴", "あめ"], ["を", null], ["配", "くば"], ["る", null], ["。", null]], "reading": "あめのひにあめをくばる。", "pitch": [[1, 0, 0], [0], [1], [0, 1, 1], [0], [1, 0]]}]}, {"level": "中級", "lines": [{"text": "箸の端を持って橋を渡る。", "tokens": [["箸", "はし"], ["の", null], ["端", "はし"], ["を", null], ["持", "も"], ["っ", null], ["て", null], ["橋", "はし"], ["を", null], ["渡", "わた"], ["る", null], ["。", null]], "reading": "はしのはしをもってはしをわたる。", "pitch": [[1], [0, 0], [0], [1, 1], [1], [0, 0], [0], [1, 0], [0], [1, 1]]}]}, {"level": "中級", "lines": [{"text": "酒のつまみに鮭を焼いた。", "tokens": [["酒", "さけ"], ["の", null], ["つまみ", null], ["に", null], ["鮭", "さけ"], ["を", null], ["焼", "や"], ["い", null], ["た", null], ["。", null]], "reading": "さけのつまみにさけをやいた。", "pitch": [[0], [1, 1], [1], [0, 0, 0], [1], [0, 0], [0], [1, 1]]}]}, {"level": "中級", "lines": [{"text": "鼻の先に花が触れた。", "tokens": [["鼻", "はな"], ["の", null], ["先", "さき"], ["に", null], ["花", "はな"], ["が", null], ["触", "ふ"], ["れ", null], ["た", null], ["。", null]], "reading": "はなのさきにはながふれた。", "pitch": [[0], [1, 1], [0], [1, 1], [0], [1, 0], [0], [1, 1]]}]}, {"level": "地獄級", "lines": [{"text": "橋本さんが箸と飴を買って橋のたもとに来たら雨が降ってきたので端に寄って橋を渡りました。", "tokens": [["橋本", "はしもと"], ["さん", null], ["が", null], ["箸", "はし"], ["と", null], ["飴", "あめ"], ["を", null], ["買", "か"], ["っ", null], ["て", null], ["橋", "はし"], ["の", null], ["たもと", null], ["に", null], ["来", "き"], ["たら", null], ["雨", "あめ"], ["が", null], ["降", "ふ"], ["っ", null], ["て", null], ["き", null], ["た", null], ["ので", null], ["端", "はし"], ["に", null], ["寄", "よ"], ["っ", null], ["て", null], ["橋", "はし"], ["を", null], ["渡", "わた"], ["り", null], ["まし", null], ["た", null], ["。", null]], "reading": "はしもとさんがはしとあめをかってはしのたもとにきたらあめがふってきたのではしによってはしをわたりました。", "pitch": [[0], [1, 1, 1, 1, 1, 1], [1], [0, 0], [0, 1, 1], [0], [1, 1], [0], [1, 0], [0], [1, 1, 0], [1], [0, 0], [1, 0, 0], [1], [0, 0], [1], [0, 0, 0], [0], [1, 1], [0], [1, 1], [0], [1, 0], [0], [1, 1, 1, 0, 0]]}]}, {"level": "地獄級", "lines": [{"text": "朝、麻の服を着た橋本さんは、酒と鮭を抱えて、鼻に花を挿したまま、橋を渡った。", "tokens": [["朝", "あさ"], ["、", null], ["麻", "あさ"], ["の", null], ["服", "ふく"], ["を", null], ["着", "き"], ["た", null], ["橋本", "はしもと"], ["さん", null], ["は", null], ["、", null], ["酒", "さけ"], ["と", null], ["鮭", "さけ"], ["を", null], ["抱", "かか"], ["え", null], ["て", null], ["、", null], ["鼻", "はな"], ["に", null], ["花", "はな"], ["を", null], ["挿", "さ"], ["し", null], ["た", null], ["まま", null], ["、", null], ["橋", "はし"], ["を", null], ["渡", "わた"], ["っ", null], ["た", null], ["。", null]], "reading": "あさ、あさのふくをきたはしもとさんは、さけとさけをかかえて、はなにはなをさしたまま、はしをわたった。", "pitch": [[1, 0], [0, 1, 0], [0], [1, 0], [1], [0], [0], [1, 1, 1, 1, 1, 1], [0], [1, 1], [1], [0, 0], [0], [1, 1, 1], [0], [1, 1], [0], [1, 0], [1], [0, 0], [0], [1], [0], [1, 0], [0], [1, 1, 1]]}]}, {"level": "地獄級", "lines": [{"text": "雨の朝、飴をなめながら箸を持った橋本さんが、橋の端で鮭に酒を注いでいた。", "tokens": [["雨", "あめ"], ["の", null], ["朝", "あさ"], ["、", null], ["飴", "あめ"], ["を", null], ["なめ", null], ["ながら", null], ["箸", "はし"], ["を", null], ["持", "も"], ["っ", null], ["た", null], ["橋本", "はしもと"], ["さん", null], ["が", null], ["、", null], ["橋", "はし"], ["の", null], ["端", "はし"], ["で", null], ["鮭", "さけ"], ["に", null], ["酒", "さけ"], ["を", null], ["注", "そそ"], ["い", null], ["で", null], ["い", null], ["た", null], ["。", null]], "reading": "あめのあさ、あめをなめながらはしをもったはしもとさんが、はしのはしでさけにさけをそそいでいた。", "pitch": [[1, 0, 0], [1, 0], [0, 1, 1], [0], [1, 1, 0, 0], [1], [0, 0], [1], [0, 0], [0], [1, 1, 1, 1, 1, 1], [0], [1, 0], [0], [1, 1], [1], [0, 0], [0], [1, 1], [0], [1, 1, 1], [0, 1]]}]}]};
+const LEVELS = [
+  {key:"初級", label:"初級"},
+  {key:"中級", label:"中級"},
+  {key:"地獄級", label:"地獄級"},
+  {key:"地獄級+感情", label:"地獄級＋感情", src:"地獄級", emotion:true},
+];
+const EMOTIONS = [
+  "泣きながら","ブチギレながら","寝起きで","ささやき声で","恋する乙女で",
+  "ラスボス風に","実況アナウンサー風に","幽霊っぽく","高笑いしながら","緊張でガチガチに",
+  "全力で言い訳するように","子どもに読み聞かせるように"
+];
+
+let level = LEVELS[0], bag = [], current = null, emotion = null, rate = 1;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function pick(){
+  const src = level.src || level.key;
+  if(!bag.length) bag = shuffle(DATA.items.filter(it=>it.level===src));
+  current = bag.pop();
+  emotion = level.emotion ? EMOTIONS[Math.floor(Math.random()*EMOTIONS.length)] : null;
+  render();
+}
+
+function el(tag, cls, text){const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e}
+
+function render(){
+  speechSynthesis.cancel(); setSpeaking(false);
+  const meta = document.getElementById("meta"); meta.replaceChildren();
+  const b = el("span", "badge" + (current.level==="地獄級"?" hell":""), current.level);
+  meta.append(b);
+  if(emotion) meta.append(el("span","emotion","お題：" + emotion + "読む"));
+
+  const box = document.getElementById("lines"); box.replaceChildren();
+  current.lines.forEach(line=>{
+    const wrap = el("div");
+    const s = el("div","sent");
+    line.tokens.forEach(([t,r])=>{
+      if(r){const rb=document.createElement("ruby"); rb.append(t); rb.append(el("rt",null,r)); s.append(rb)}
+      else s.append(t);
+    });
+    const rd = el("div","reading",line.reading); rd.hidden = true;
+    wrap.append(s, rd); box.append(wrap);
+  });
+  document.getElementById("showReading").textContent = "読みを見る";
+}
+
+/* ---- お手本音声 ---- */
+let jaVoice = null;
+function chooseVoice(){
+  const vs = speechSynthesis.getVoices().filter(v=>v.lang && v.lang.replace("_","-").startsWith("ja"));
+  const score = v => (/premium|プレミアム/i.test(v.name)?3:0) + (/enhanced|拡張/i.test(v.name)?2:0) + (/kyoko|o-ren|otoya/i.test(v.name)?1:0);
+  jaVoice = vs.sort((a,b)=>score(b)-score(a))[0] || null;
+}
+chooseVoice(); speechSynthesis.onvoiceschanged = chooseVoice;
+
+function setSpeaking(on){
+  const p=document.getElementById("play");
+  p.classList.toggle("speaking",on); p.textContent = on ? "■ 止める" : "▶ お手本を聞く";
+}
+function play(){
+  if(speechSynthesis.speaking){speechSynthesis.cancel(); setSpeaking(false); return}
+  const lines = current.lines;
+  lines.forEach((line,i)=>{
+    const u = new SpeechSynthesisUtterance(line.text);
+    u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=rate;
+    if(i===lines.length-1){u.onend=()=>setSpeaking(false); u.onerror=()=>setSpeaking(false)}
+    speechSynthesis.speak(u);
+  });
+  setSpeaking(true);
+}
+
+/* ---- UI ---- */
+const nav = document.getElementById("levels");
+LEVELS.forEach((lv,i)=>{
+  const b = el("button","lv",lv.label); b.setAttribute("aria-pressed", i===0?"true":"false");
+  b.onclick=()=>{ level=lv; bag=[]; nav.querySelectorAll(".lv").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); pick(); };
+  nav.append(b);
+});
+document.getElementById("play").onclick = play;
+document.getElementById("next").onclick = pick;
+document.getElementById("showReading").onclick = e=>{
+  const rds=[...document.querySelectorAll(".reading")]; const show = rds[0].hidden;
+  rds.forEach(r=>r.hidden=!show); e.target.textContent = show ? "読みを隠す" : "読みを見る";
+};
+function seg(id, fn){
+  const s=document.getElementById(id);
+  s.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    s.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true"); fn(b.dataset.v);
+  });
+}
+seg("rubySeg", v=>document.body.classList.toggle("noruby", v==="off"));
+seg("rateSeg", v=>rate=parseFloat(v));
+
+pick();
+</script>
+</body>
+</html>
