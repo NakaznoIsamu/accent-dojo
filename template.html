@@ -54,6 +54,14 @@ h1 span{color:var(--accent)}
 .noruby .sent rt{visibility:hidden}
 .reading{margin-top:2px;font-size:16px;color:var(--sub);line-height:1.7;border-top:1px dashed var(--line);padding-top:6px}
 .reading[hidden]{display:none}
+.pline{display:flex;flex-wrap:wrap;row-gap:10px;font-size:18px;color:var(--ink);padding:4px 0 2px}
+.pline .ph{display:inline-flex;margin-right:8px}
+.pline .m{padding:2px 2px 3px;border:0 solid var(--accent)}
+.pline .m.h{border-top-width:2px}
+.pline .m.l{border-bottom-width:2px}
+.pline .m.step{border-left-width:2px}
+.pline .punct{color:var(--sub);align-self:flex-end;padding-left:1px}
+.pnote{font-size:12px;color:var(--sub);margin-top:4px;border-top:0;padding-top:0;line-height:1.6}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
 button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:16px;font-weight:700}
 .play{background:var(--accent);color:var(--accent-ink);grid-column:1 / -1}
@@ -130,7 +138,7 @@ button.big{border:0;border-radius:14px;padding:15px 10px;font:inherit;font-size:
   <div class="lines" id="lines"></div>
   <div class="actions">
     <button class="big play" id="play">▶ お手本を聞く</button>
-    <button class="big sec" id="showReading">読みを見る</button>
+    <button class="big sec" id="showReading">読みとアクセント</button>
     <button class="big sec" id="next">次の問題 →</button>
   </div>
 </main>
@@ -189,6 +197,20 @@ function pick(){
 
 function el(tag, cls, text){const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e}
 
+/* 読み＋高低線: アクセント句ごとにまとめ、句の途中で高さが変わる所に縦線 */
+function renderPitchLine(pitch){
+  const wrap = el("div","pline"); let ph = null, prev = null;
+  pitch.forEach(x=>{
+    if(x.length===1){ (ph||wrap).append(el("span","punct",x[0])); ph=null; prev=null; return; }
+    const [k,hi,start] = x;
+    if(start || !ph){ ph = el("span","ph"); wrap.append(ph); prev = null; }
+    let cls = "m " + (hi?"h":"l");
+    if(prev!==null && prev!==hi) cls += " step";
+    ph.append(el("span",cls,k)); prev = hi;
+  });
+  return wrap;
+}
+
 function render(){
   speechSynthesis.cancel(); setSpeaking(false);
   const meta = document.getElementById("meta"); meta.replaceChildren();
@@ -204,10 +226,14 @@ function render(){
       if(r){const rb=document.createElement("ruby"); rb.append(t); rb.append(el("rt",null,r)); s.append(rb)}
       else s.append(t);
     });
-    const rd = el("div","reading",line.reading); rd.hidden = true;
+    const rd = el("div","reading"); rd.hidden = true;
+    if(line.pitch) rd.append(renderPitchLine(line.pitch));
+    else rd.append(line.reading);
     wrap.append(s, rd); box.append(wrap);
   });
-  document.getElementById("showReading").textContent = "読みを見る";
+  document.getElementById("showReading").textContent = "読みとアクセント";
+  const pn = el("p","pnote reading","線が上＝高く、下＝低く。文の中では言葉のつながりで変わることもあるので目安です。"); pn.hidden = true;
+  box.append(pn);
 }
 
 /* ---- お手本音声 ---- */
@@ -246,7 +272,7 @@ document.getElementById("play").onclick = play;
 document.getElementById("next").onclick = pick;
 document.getElementById("showReading").onclick = e=>{
   const rds=[...document.querySelectorAll(".reading")]; const show = rds[0].hidden;
-  rds.forEach(r=>r.hidden=!show); e.target.textContent = show ? "読みを隠す" : "読みを見る";
+  rds.forEach(r=>r.hidden=!show); e.target.textContent = show ? "隠す" : "読みとアクセント";
 };
 function seg(id, fn){
   const s=document.getElementById(id);

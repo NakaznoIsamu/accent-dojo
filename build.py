@@ -33,32 +33,50 @@ def split_okurigana(surface: str, reading: str):
     return parts
 
 
-def pitch_moras(text: str):
-    """アクセント句ごとのモーラと高低（ステップ3で使用）。"""
-    labels = pyopenjtalk.make_label(pyopenjtalk.run_frontend(text))
-    phrases, cur, last = [], [], None
-    for l in labels:
+VOWEL_END = {"a", "i", "u", "e", "o", "A", "I", "U", "E", "O", "N", "cl"}
+SMALL_KANA = set("ぁぃぅぇぉゃゅょゎ")
+
+
+def label_morae(text: str):
+    """OpenJTalkのラベルから、モーラごとの (高=1/低=0, アクセント句の先頭=1) を返す。"""
+    out, cur = [], None
+    for l in pyopenjtalk.make_label(pyopenjtalk.run_frontend(text)):
         p = re.search(r"\-(.*?)\+", l).group(1)
         if p in ("sil", "pau"):
-            if cur:
-                phrases.append(cur)
-                cur, last = [], None
             continue
-        a = re.search(r"/A:([\-\d]+)\+(\d+)\+(\d+)", l)
-        a2 = int(a.group(2))
-        acc = int(re.search(r"/F:\d+_(\d+)", l).group(1))
-        hi = (acc == 0 and a2 > 1) or (acc == 1 and a2 == 1) or (acc > 1 and 1 < a2 <= acc)
-        # 同じ句の中で a2 が減ったら新しいアクセント句
-        if last is not None and a2 <= last[0] and a2 == 1:
-            phrases.append(cur)
-            cur = []
-        if last is not None and a2 == last[0]:
-            continue  # 子音→母音など同じモーラの続き
-        cur.append(1 if hi else 0)
-        last = (a2,)
-    if cur:
-        phrases.append(cur)
-    return phrases
+        if cur is None:  # モーラの最初の音素で高低を決める
+            a2 = int(re.search(r"/A:[\-\d]+\+(\d+)\+", l).group(1))
+            acc = int(re.search(r"/F:\d+_(\d+)", l).group(1))
+            hi = (acc == 0 and a2 > 1) or (acc == 1 and a2 == 1) or (acc > 1 and 1 < a2 <= acc)
+            cur = (1 if hi else 0, 1 if a2 == 1 else 0)
+        if p in VOWEL_END:  # 母音・撥音・促音でモーラが終わる
+            out.append(cur)
+            cur = None
+    return out
+
+
+def pitch_line(text: str, reading: str):
+    """読み（ひらがな）をモーラに分け、各モーラに高低を付ける。
+    戻り値: [[かな, 高低, 句頭], ..., ["、"], ...]。数が合わなければ None。"""
+    morae = []
+    for c in reading:
+        if c in "、。":
+            morae.append(c)
+        elif c in SMALL_KANA and morae and morae[-1] not in "、。":
+            morae[-1] += c
+        else:
+            morae.append(c)
+    labels = label_morae(text)
+    if len(labels) != sum(m not in "、。" for m in morae):
+        return None
+    res, i = [], 0
+    for m in morae:
+        if m in "、。":
+            res.append([m])
+        else:
+            res.append([m, *labels[i]])
+            i += 1
+    return res
 
 
 def build_line(text: str):
@@ -74,7 +92,10 @@ def build_line(text: str):
         kata2hira(n["read"]) if n["read"] not in ("、", "。") else n["string"]
         for n in pyopenjtalk.run_frontend(text)
     )
-    return {"text": text, "tokens": tokens, "reading": reading, "pitch": pitch_moras(text)}
+    pitch = pitch_line(text, reading)
+    if pitch is None:
+        print(f"  ※高低線を作れませんでした（読みとモーラ数が不一致）: {text}")
+    return {"text": text, "tokens": tokens, "reading": reading, "pitch": pitch}
 
 
 def main():
