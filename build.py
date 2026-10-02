@@ -93,6 +93,9 @@ def main():
     html = html.replace("__VERSION__", data["version"])
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
+    sw = open("sw.template.js", encoding="utf-8").read().replace("__VERSION__", data["version"])
+    with open("sw.js", "w", encoding="utf-8") as f:
+        f.write(sw)
     print(f"{len(items)} 問を書き出しました (v{data['version']})")
 
 

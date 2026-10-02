@@ -8,3 +8,7 @@
 - `VERSION` … バージョン番号
 
 更新手順: `sentences.txt` を編集 → `VERSION` を上げる → `python build.py` → commit & push
+
+## PWA（ホーム画面アプリ化）
+- `manifest.webmanifest` / `icons/` … ホーム画面アイコン（`make_icons.py` で生成）
+- `sw.template.js` → `sw.js` … オフライン対応。`VERSION` を上げてビルドすると、利用者側に「新しいバージョンがあります」と表示される
