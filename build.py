@@ -95,7 +95,22 @@ def build_line(text: str):
     pitch = pitch_line(text, reading)
     if pitch is None:
         print(f"  ※高低線を作れませんでした（読みとモーラ数が不一致）: {text}")
-    return {"text": text, "tokens": tokens, "reading": reading, "pitch": pitch}
+    return {"text": text, "tokens": tokens, "reading": reading, "pitch": pitch, "speak": speak_text(text)}
+
+
+# iPhoneの読み上げが読み間違える漢字（報告があったら追加する）
+# 例: 「端」を「たん」と読む
+SPEAK_AS_KANA = {"端"}
+
+
+def speak_text(text: str) -> str:
+    """読み上げ用の文。SPEAK_AS_KANA の漢字だけ、正しい読みのひらがなに置き換える。
+    （全部ひらがなにすると、橋・箸などの区別がつかずアクセントが崩れるため）"""
+    out = []
+    for n in pyopenjtalk.run_frontend(text):
+        surf = n["string"]
+        out.append(kata2hira(n["read"]) if surf in SPEAK_AS_KANA else surf)
+    return "".join(out)
 
 
 def main():
@@ -112,6 +127,7 @@ def main():
     html = open("template.html", encoding="utf-8").read()
     html = html.replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False))
     html = html.replace("__VERSION__", data["version"])
+    html = html.replace("/*__SPEAK_AS_KANA__*/[]", json.dumps(sorted(SPEAK_AS_KANA), ensure_ascii=False))
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
     sw = open("sw.template.js", encoding="utf-8").read().replace("__VERSION__", data["version"])

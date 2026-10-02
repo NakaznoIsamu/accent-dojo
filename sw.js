@@ -1,6 +1,6 @@
-// アクセント道場 Service Worker — v0.5.0
+// アクセント道場 Service Worker — v0.5.1
 // バージョンを上げるとキャッシュ名が変わり、新しい版に入れ替わる。
-const CACHE = "accent-dojo-0.5.0";
+const CACHE = "accent-dojo-0.5.1";
 const FONT_CACHE = "accent-dojo-fonts";
 const CORE = [
   "./", "./index.html", "./manifest.webmanifest", "./dict.json",

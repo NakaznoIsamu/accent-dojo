@@ -253,7 +253,7 @@ function play(){
   if(speechSynthesis.speaking){speechSynthesis.cancel(); setSpeaking(false); return}
   const lines = current.lines;
   lines.forEach((line,i)=>{
-    const u = new SpeechSynthesisUtterance(line.text);
+    const u = new SpeechSynthesisUtterance(line.speak || line.text);
     u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=rate;
     if(i===lines.length-1){u.onend=()=>setSpeaking(false); u.onerror=()=>setSpeaking(false)}
     speechSynthesis.speak(u);
@@ -296,6 +296,7 @@ document.querySelectorAll(".tabs button").forEach(t=>t.onclick=()=>{
 
 /* ---- 辞書 ---- */
 let DICT = null, dictLoading = null;
+const SPEAK_AS_KANA = new Set(/*__SPEAK_AS_KANA__*/[]); // 読み上げが読み間違える漢字
 const resultsEl = document.getElementById("results");
 function loadDict(){
   if(DICT || dictLoading) return dictLoading;
@@ -353,7 +354,7 @@ function renderWord(d){
   const s = el("div","surf",surf);
   if(kind===1) s.append(el("small",null,"人名・地名など"));
   const t = el("div","type",typeName(n,ms.length));
-  const sp = el("button","speak","▶"); sp.setAttribute("aria-label", surf+"を読み上げ"); sp.onclick=()=>speakWord(surf);
+  const sp = el("button","speak","▶"); sp.setAttribute("aria-label", surf+"を読み上げ"); sp.onclick=()=>speakWord(SPEAK_AS_KANA.has(surf) ? read : surf);
   const p = el("div","pitch");
   const units = noun ? [...ms, "が"] : ms;
   units.forEach((m,i)=>{
